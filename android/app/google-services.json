@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "469157915011",
+    "firebase_url": "https://hive-manila-exam.firebaseio.com",
+    "project_id": "hive-manila-exam",
+    "storage_bucket": "hive-manila-exam.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:469157915011:android:fb16e47fe69a6e7a8caeb6",
+        "android_client_info": {
+          "package_name": "com.example.hiveManilaExam"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "469157915011-vdd1iulh59shf8a20vvq736bttundics.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.hiveManilaExam",
+            "certificate_hash": "146ae3e693ca1f187e433f7a484b8e8a16aa80ec"
+          }
+        },
+        {
+          "client_id": "469157915011-g5a8mv7h1b4r0rja4ivj5sf5cigat2c0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBA2oB-hRYWCULUsKjswqOAtwO6Lgz4jck"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "469157915011-g5a8mv7h1b4r0rja4ivj5sf5cigat2c0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
