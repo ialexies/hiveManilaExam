@@ -9,7 +9,6 @@ import 'package:hiveManilaExam/screens/upload.dart';
 import 'package:hiveManilaExam/widgets/splashScreen.dart';
 import 'package:hiveManilaExam/screens/registerUser.dart';
 import 'package:hiveManilaExam/widgets/loadingPage.dart';
-
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:font_awesome_flutter/fa_icon.dart';
