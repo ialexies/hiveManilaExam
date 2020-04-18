@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hiveManilaExam/models/users.dart';
+import 'package:hiveManilaExam/screens/posts.dart';
 import 'package:hiveManilaExam/screens/upload.dart';
 import 'package:hiveManilaExam/widgets/splashScreen.dart';
 import 'package:hiveManilaExam/screens/registerUser.dart';
@@ -204,13 +205,14 @@ class _HomeState extends State<Home> {
 
   authScreen() {
     return Scaffold(
-      body: ListView(
-        children: <Widget>[
-          Text('food 1'),
-          Text('food 2'),
-          Text('food 3'),
-        ],
-      ),
+      // body: ListView(
+      //   children: <Widget>[
+      //     Text('food 1'),
+      //     Text('food 2'),
+      //     Text('food 3'),
+      //   ],
+      // ),
+      body: PostScreen(userEmail:  currentUser.email,),
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.camera),
           onPressed: () {

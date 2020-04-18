@@ -3,14 +3,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Post{
-  final String uid;
-  final String title;
-  final int index;
-
+   String uid;
+   String title;
+   String ownerId;
+   String username;
+   dynamic likes;
+   String imgUrl;
+   int index;
 
   Post({
     this.uid,
     this.title,
+    this.ownerId,
+    this.username,
+    this.likes,
+    this.imgUrl,
     this.index
   });
 
@@ -20,7 +27,24 @@ class Post{
 			map['id'] = uid;
 		}
 		map['title']=title;
+		map['ownerId']=ownerId;
+		map['username']=username;
+		map['likes']=likes;
+    map['imgUrl']=imgUrl;
 		return map;
 } 
+
+    factory Post.fromDocument(DocumentSnapshot doc) {
+    return Post(
+      uid: doc['id'],
+      title: doc['title'],
+      ownerId: doc['ownerId'],
+      username: doc['username'],
+      likes: doc['likes'],
+      imgUrl: doc['imgUrl'],
+      
+    );
+  }
+
 
 }

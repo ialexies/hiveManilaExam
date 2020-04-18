@@ -16,7 +16,6 @@ import 'package:image/image.dart' as Im;
 import 'package:uuid/uuid.dart';
 
 import 'home.dart';
-var dbBatch = Firestore.instance.batch();
 
 class Upload extends StatefulWidget {
   final User currentUser;
@@ -29,12 +28,13 @@ class _UploadState extends State<Upload> {
   // File file;
   List<Asset> images = List<Asset>();
   List<Post> imageDetails = [];
-    bool isUploading = false;
-  
+  bool isUploading = false;
+  final _formKey = GlobalKey<FormState>();
+  bool isUploaded=false;
   String _error = 'No Error Dectected';
   List<String> imageUrls = <String>[];
-
-
+  
+  TextEditingController updateTitleController = TextEditingController();
 
   Widget buildGridView() {
     return GridView.count(
@@ -59,16 +59,31 @@ class _UploadState extends State<Upload> {
                         child: Row(
                           children: <Widget>[
                             Expanded(
-                              child: IconButton(icon: Icon(Icons.edit), onPressed: (){}),
+                              child: IconButton(
+                                  icon: Icon(Icons.edit),
+                                  onPressed: () {
+                                    setState(() {
+                                      buildShowDialog(index);
+                                    });
+                                  }),
                             ),
                             VerticalDivider(
                               color: Colors.grey,
                               thickness: 5,
                             ),
                             Expanded(
-                              child: IconButton(icon: Icon(Icons.delete), onPressed: (){}),
-                            ),
-                           
+                              child: IconButton(
+                                  icon: Icon(Icons.delete), 
+                                  onPressed: null,
+                                  // onPressed: (){
+                                  //   print('fdfdf');
+                                  //   setState(() {
+                                  //     images.remove(images[index]);
+                                  //     // images.remove(index);
+                                  //     imageDetails.remove(images[index]);
+                                  //   });
+                                  // },
+                            ),),
                           ],
                         ),
                       ),
@@ -76,11 +91,10 @@ class _UploadState extends State<Upload> {
                         height: 30,
                       ),
                       Text(
-                        'Titlse',
+                        imageDetails[index].title,
                         style: Theme.of(context).textTheme.headline,
                         textAlign: TextAlign.center,
                       ),
-                      Text(asset.name)
                     ],
                   ),
                 ],
@@ -92,15 +106,68 @@ class _UploadState extends State<Upload> {
     );
   }
 
+  deleteImageInList(){}
+  Future buildShowDialog(int index) {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Update Title'),
+            content: Column(
+              children: <Widget>[
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: TextFormField(
+                          controller: updateTitleController,
+                          decoration: InputDecoration(
+                            hintText: "Update Title",
+                            filled: true,
+                            suffixIcon: IconButton(
+                              icon: Icon(Icons.clear),
+                              onPressed: () {
+                                setState(() {
+                                  updateTitleController.clear();
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: RaisedButton(
+                          child: Text("Submit"),
+                          onPressed: () {
+                            setState(() {
+                              imageDetails[index].title = updateTitleController.text;
 
-
+                              updateTitleController.text;
+                              updateTitleController.clear();
+                              Navigator.pop(context);
+                            });
+                          },
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
+  }
 
   Future<void> loadAssets() async {
     images = [];
     imageDetails = [];
     List<Asset> resultList = List<Asset>();
     String error = 'No Error Dectected';
-
+    isUploaded=false;
     try {
       resultList = await MultiImagePicker.pickImages(
         maxImages: 300,
@@ -119,137 +186,149 @@ class _UploadState extends State<Upload> {
       error = e.toString();
     }
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
     if (!mounted) return;
-
 
     setState(() {
       images = resultList;
       _error = error;
     });
 
-    for(var x = 0; x< images.length; x++){
-     imageDetails.add(
-        Post(
-          index: x,
-          uid: Uuid().v4(),
-          title: '',
-
-        )
-        );
+    for (var x = 0; x < images.length; x++) {
+      imageDetails.add(Post(
+        index: x,
+        uid: Uuid().v4(),
+        title: '',
+      ));
     }
 
     print(imageDetails.toString());
-    
+  }
+
+  Future<String> uploadImage()async{
+
+ 
+
+    for (var i = 0; i < imageDetails.length; i++) {
+      StorageUploadTask uploadTask = storageRef.child("post_${imageDetails[i].uid}.jpg")
+        .putData((await  images[i].getByteData()).buffer.asUint8List());
+      StorageTaskSnapshot storageSnap =  await uploadTask.onComplete; //FIRStorageTaskSnapshot represents an immutable view of a task.
+      String downloadUrl = await storageSnap.ref.getDownloadURL();
+
+      imageDetails[i].imgUrl=downloadUrl;
+                                    imageDetails[i].username = currentUser.id;
+                              imageDetails[i].ownerId = currentUser.email;
+                              imageDetails[i].likes = [];
+                              imageDetails[i].username = currentUser.firstName;
+                         
+    }
+
+
+    createPostInFireStore();
+    // return downloadUrl;
   }
 
 
-  // void uploadImages(){
-  //   for ( var imageFile in images) {
-  //     postImage(imageFile).then((downloadUrl) {
-  //       imageUrls.add(downloadUrl.toString());
-  //       if(imageUrls.length==images.length){
-  //         String documnetID = DateTime.now().millisecondsSinceEpoch.toString();
-  //         Firestore.instance.collection('images').document(documnetID).setData({
-  //           'urls':imageUrls
-  //         }).then((_){
-  //           SnackBar snackbar = SnackBar(content: Text('Uploaded Successfully'));
-  //           // widget.globalKey.currentState.showSnackBar(snackbar);
-  //           setState(() {
-  //             images = [];
-  //             imageUrls = [];
-  //           });
-  //         });
-  //       }
-  //     }).catchError((err) {
-  //       print(err);
-  //     });
-  //   }
-  // }
+  createPostInFireStore(){
+   
+    var dbBatch = Firestore.instance.batch();
+    int count = 0;
 
-  // Future<dynamic> postImage(Asset imageFile) async {
-  //   String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-  //   StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
-  //   StorageUploadTask uploadTask = reference.putData((await imageFile.getByteData()).buffer.asUint8List());
-  //   StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
-  //   print(storageTaskSnapshot.ref.getDownloadURL());
-  //   return storageTaskSnapshot.ref.getDownloadURL();
-  // }
+    if (imageDetails != []) {
+      var dbBatch = Firestore.instance.batch();
+      imageDetails.forEach((x) async{
 
-  handleSubmit() async{
+        Post toUpload = x;
+        //add to storage and returns a media url
+        // String mediaUrl = await uploadImage(images[count],x.uid);
+
+        // toUpload.imgUrl= await uploadImage(images[count],x.uid);
+
+        // Add to firestore
+        
+        dbBatch.setData(
+            postsRef
+                .document(currentUser.email)
+                .collection("userPosts")
+                .document(x.uid),
+            toUpload.toMap());
+        // if(imageDetails.length==x){
+        //    dbBatch.commit();
+        // }
+      });
+      
+      // count=count+1;
+      dbBatch.commit();
+
+      setState(() {
+        images=[];
+        imageDetails=[];
+      });
+      
+    }
+
+     setState(() {
+        isUploading=false;
+        isUploaded=true;
+      });
+
+  }
+
+
+  handleSubmit() async {
+    
     setState(() {
-      isUploading=true;
+      isUploading = true;
     });
 
-    
-
-    imageDetails.forEach((x){
-      dbBatch.setData(postsRef.document(currentUser.id), 
-        x.toMap()
-      );
-    });
-
-    dbBatch.commit();
-
-    // dbBatch.setData(
-
-    //   postsRef.document(currentUser.id),
-    //   datahere
-    //   ,
-    // ); 
-    
-
+      uploadImage();
+ 
+      
+    //  createPostInFireStore();
 
   }
+
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
       home: new Scaffold(
         appBar: new AppBar(
+          leading: IconButton(
+        icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
           title: const Text(
             'Upload Images',
           ),
           actions: <Widget>[
-            RaisedButton(
-              child: Text('Upload'),
-              onPressed: handleSubmit
+            RaisedButton(child: Text('Upload'), onPressed: handleSubmit),
+          ],
+        ),
+        body: Column(
+          children: <Widget>[
+            isUploading ? LinearProgressIndicator() : SizedBox(height: 0,),
+            isUploaded? Column(
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Text('Photos has been uploaded',textAlign: TextAlign.center, style: Theme.of(context).textTheme.display1,),
+                ),
+              ],
+            ):SizedBox(height: 0,),
+            Expanded(
+              child: buildGridView(),
             ),
-                        ],
-                      ),
-                      body: Column(
-                        children: <Widget>[
-                          // Padding(
-                          //   padding: EdgeInsets.symmetric(vertical: 30),
-                          //   child: Text(
-                          //     'Upload Images'.toUpperCase(),
-                          //     style: Theme.of(context).textTheme.display1,
-                          //   ),
-                          // ),
-              
-                          // Center(child: Text('Error: $_error')),
-                          Expanded(
-                            child: buildGridView(),
-                          ),
-                          // RaisedButton(
-                          //   child: Text("Pick images"),
-                          //   onPressed: loadAssets,
-                          // ),
-                        ],
-                      ),
-                      floatingActionButton: new FloatingActionButton(
-                        child: const Icon(Icons.add),
-                        onPressed: loadAssets,
-                      ),
-                      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-                      bottomNavigationBar: new BottomAppBar(
-                        color: Colors.white,
-                        child: new Row(),
-                      ),
-                    ),
-                  );
-                }
-              
-                
+          ],
+        ),
+        floatingActionButton: new FloatingActionButton(
+          child: const Icon(Icons.add),
+          onPressed: loadAssets,
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        bottomNavigationBar: new BottomAppBar(
+          color: Colors.white,
+          child: new Row(),
+        ),
+      ),
+    );
+  }
 }
